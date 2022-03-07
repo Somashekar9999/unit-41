@@ -1,63 +1,41 @@
-const express = require("express");
+const express = require('express')
 
 const app = express();
 
-app.use(logger);
+app.use(logger)
 
-app.get("/books", (req, res) => {
-  return res.send({ route: "/books" });
-});
+app.listen(4000, ()=>{
+   console.log('listening to port 4000')
+})
 
-app.get("/libaries", (req, res) => {
-  return res.send({ route: "/libaries" });
-});
+app.get('/books',(req,res)=>{
+     return res.send({ route: "/books"})
+})
 
-app.get("/authors", (req, res) => {
-  return res.send({ route: "/authors" });
-});
+let permission= false;
+app.get('/author',checkPermission("author"),(req,res)=>{
+    return res.send({ route: "/author",permission:permission})
+})
 
-function logger(req, res, next) {
-  if (req.path == "/books") {
-    req.role = "books";
-  } else if (req.path === "/libaries") {
-    req.role = "libaries";
-  } else if (req.path === "/authors") {
-    req.role = "authors";
-  } else {
-    req.role = "somebody";
-  }
-  next();
+app.get('/libraries',checkPermission("librarian"),(req,res)=>{
+    return res.send({ route: "/libraries",permission:permission})
+})
+
+function logger (req,res,next){
+    console.log('i am middleware')
+    next();
 }
 
-function books(req, res, next) {
-  console.log("before route handles books");
-  next();
-  console.log("after route handler books");
-}
+function checkPermission(role){
 
-function libaries(req, res, next) {
-  console.log("before route handles libaries");
-  next();
-  console.log("after route handler libaries");
-}
-
-function authors(req, res, next) {
-  console.log("before route handles authors");
-  next();
-  console.log("after route handler authors");
-}
-
-app.get("/libaries", loggedIn("books"), (req, res) => {
-  return res.send("yes");
-});
-
-function loggedIn(role) {
-  return function logger(req, res, next) {
-    if (role == "liberies") {
-      return next();
-    } else if (role == "authors") {
-      return next();
+    return function checkPermission(req,res,next){
+        if(role == 'author' && req.path=='/author'){
+            permission=true;
+        }
+        else if(role == 'librarian' && req.path=='/libraries'){
+            permission=true;
+        }
+       next();
+       
     }
-    return res.send("Not");
-  };
 }
